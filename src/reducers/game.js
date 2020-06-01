@@ -74,9 +74,11 @@ const pieces = {
             image: require('../assets/white-rook.svg.png')
         },
         knight: {
-            type: 'Knight',
+            type: 'knight',
             color: 'white',
-            image: ''
+            restingImage: require('../assets/white-knight.svg.png'),
+            activeImage: require('../assets/active-white-knight.svg.png'),
+            image: require('../assets/white-knight.svg.png')
         },
         bishop: {
             type: 'Bishop',
@@ -161,9 +163,11 @@ const pieces = {
             moved: false
         },
         rook: {
-            type: 'Rook',
+            type: 'rook',
             color: 'black',
-            image: ''
+            restingImage: require('../assets/black-rook.svg.png'),
+            activeImage: require('../assets/active-black-rook.svg.png'),
+            image: require('../assets/black-rook.svg.png')
         },
         knight: {
             type: 'Knight',
@@ -244,7 +248,7 @@ const initialState = {
         {
             row: 2,
             column: 1,
-            piece: pieces.white.pawnOne,
+            piece: {},
             valid: false
         },
         {
@@ -695,7 +699,7 @@ export const game = createSlice({
                         (piece.row === square.row && piece.column === square.column) ? square.valid = true : square.column === piece.column && square.row === piece.row + 1 && !square.piece.type ? square.valid = true :
                             (square.column === piece.column + 1 || square.column === piece.column - 1) &&
                                 square.row === piece.row + 1 &&
-                                square.piece.type ? square.valid = true :
+                                square.piece.color && square.piece.color !== piece.piece.color ? square.valid = true :
                                 square.valid = false;
                     })
                 } else {
@@ -703,7 +707,7 @@ export const game = createSlice({
                         (piece.row === square.row && piece.column === square.column) ? square.valid = true : square.column === piece.column && square.row === piece.row - 1 && !square.piece.type ? square.valid = true :
                             (square.column === piece.column + 1 || square.column === piece.column - 1) &&
                                 square.row === piece.row - 1 &&
-                                square.piece.type ? square.valid = true :
+                                square.piece.color && square.piece.color !== piece.piece.color ? square.valid = true :
                                 square.valid = false;
                     })
                 }
@@ -717,7 +721,7 @@ export const game = createSlice({
                         (piece.row === square.row && piece.column === square.column) ? square.valid = true : square.column === piece.column && (square.row === piece.row + 1 || square.row === piece.row + 2) && !square.piece.type ? square.valid = true :
                             (square.column === piece.column + 1 || square.column === piece.column - 1) &&
                                 square.row === piece.row + 1 &&
-                                square.piece.type ? square.valid = true :
+                                square.piece.color && square.piece.color !== piece.piece.color ? square.valid = true :
                                 square.valid = false;
                     })
                 } else {
@@ -725,7 +729,7 @@ export const game = createSlice({
                         (piece.row === square.row && piece.column === square.column) ? square.valid = true : square.column === piece.column && (square.row === piece.row - 1 || square.row === piece.row - 2) && !square.piece.type ? square.valid = true :
                             (square.column === piece.column + 1 || square.column === piece.column - 1) &&
                                 square.row === piece.row - 1 &&
-                                square.piece.type ? square.valid = true :
+                                square.piece.color && square.piece.color !== piece.piece.color ? square.valid = true :
                                 square.valid = false;
                     })
                 }
@@ -734,14 +738,35 @@ export const game = createSlice({
                 console.log('rook')
 
                 const sameColumn = state.squares.filter((square) => square.column === piece.column)
-                sameColumn.forEach((square) => {
-                    piece.row === square.row && piece.column === square.column ? square.valid = true :
-                        square.piece.type && square.piece.color === piece.piece.color ? square.valid = false : square.valid = true
-                })
-                // state.squares.forEach((square) => {
-                //      square.column === piece.column || square.row === piece.row ? square.valid = true : square.valid = false
+                const sameRow = state.squares.filter((square) => square.row === piece.row)
 
-                // })
+                let i = 0;
+                let j = 0;
+                while (i <= 7) {
+                    if (sameColumn[i].row === piece.row || !sameColumn[i].piece.color || (sameColumn[i].piece.color && sameColumn[i].piece.color !== piece.piece.color)) {
+                        if (sameColumn[i].piece.color && sameColumn[i].piece.color !== piece.piece.color) {
+                            sameColumn[i].valid = true;
+                            break;
+                        }
+                        sameColumn[i].valid = true;
+                        i++;
+                    } else {
+                        break
+                    }
+                }
+                while (j <= 7) {
+                    if (sameRow[j].column === piece.column || !sameRow[j].piece.color || (sameRow[j].piece.color && sameRow[j].piece.color !== piece.piece.color)) {
+                        if (sameRow[j].piece.color && sameRow[j].piece.color !== piece.piece.color) {
+                            sameRow[j].valid = true;
+                            break;
+                        }
+                        sameRow[j].valid = true;
+                        j++;
+                    } else {
+                        break
+                    }
+                }
+
             }
         },
 
