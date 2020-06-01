@@ -645,7 +645,17 @@ const initialState = {
 
 
     ],
-    players: []
+    players: [
+        {
+            color: "white",
+            hasKing: true
+        },
+        {
+            color: "black",
+            hasKing: true
+        }
+    ],
+    currentTurn: "white"
 }
 
 export const game = createSlice({
@@ -670,6 +680,7 @@ export const game = createSlice({
                 state.pieces[newSquare.piece.color][newSquare.piece.type].moved = true;
                 newSquare.piece = state.pieces[newSquare.piece.color][newSquare.piece.type]
             }
+            state.currentTurn = state.currentTurn === "white" ? "black" : "white"
         },
 
         moveCalculator: (state, action) => {
@@ -721,6 +732,16 @@ export const game = createSlice({
 
             } else if (piece.piece.type.includes('rook')) {
                 console.log('rook')
+
+                const sameColumn = state.squares.filter((square) => square.column === piece.column)
+                sameColumn.forEach((square) => {
+                    piece.row === square.row && piece.column === square.column ? square.valid = true :
+                        square.piece.type && square.piece.color === piece.piece.color ? square.valid = false : square.valid = true
+                })
+                // state.squares.forEach((square) => {
+                //      square.column === piece.column || square.row === piece.row ? square.valid = true : square.valid = false
+
+                // })
             }
         },
 

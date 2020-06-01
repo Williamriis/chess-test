@@ -29,10 +29,14 @@ const PieceImage = styled.img`
 export const SetGame = () => {
     const dispatch = useDispatch()
     const squares = useSelector((store) => store.game.squares)
+    const currentPlayer = useSelector((store) => store.game.currentTurn)
     const [activePiece, setActivePiece] = useState(false)
 
     const movePiece = async (oldSquare, targetSquare) => {
-        if (!activePiece && oldSquare.piece.type) {
+
+        if (!activePiece && oldSquare.piece.color !== currentPlayer) {
+            alert(`It's ${currentPlayer}'s turn!`)
+        } else if (!activePiece && oldSquare.piece.type) {
             console.log(oldSquare, targetSquare)
             await setActivePiece(oldSquare)
             dispatch(
