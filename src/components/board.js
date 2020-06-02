@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import { useSelector, useDispatch } from 'react-redux'
-import { game } from '../reducers/game'
+import { game, testCheck } from '../reducers/game'
 
 const Board = styled.div`
   display: grid;
@@ -30,8 +30,11 @@ export const SetGame = () => {
     const dispatch = useDispatch()
     const squares = useSelector((store) => store.game.squares)
     const currentPlayer = useSelector((store) => store.game.currentTurn)
-    const [activePiece, setActivePiece] = useState(false)
 
+    const [activePiece, setActivePiece] = useState(false)
+    useEffect(() => {
+        dispatch(testCheck('hello'))
+    }, [currentPlayer])
     const movePiece = async (oldSquare, targetSquare) => {
 
         if (!activePiece && oldSquare.piece.color !== currentPlayer) {

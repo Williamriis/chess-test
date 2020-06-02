@@ -1,9 +1,11 @@
 import React from 'react'
 import { Provider } from 'react-redux'
-import { createStore, combineReducers } from '@reduxjs/toolkit'
+import { createStore, combineReducers, applyMiddleware, compose } from '@reduxjs/toolkit'
+import thunk from 'redux-thunk'
 import { game } from './reducers/game'
 import { SetGame } from 'components/board'
 
+const composeEnhancer = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
 const saveToLocalStorage = (state) => {
   try {
@@ -32,8 +34,7 @@ const reducer = combineReducers({
 
 const persistedState = loadFromLocalStorage()
 
-const store = createStore(reducer,
-  persistedState, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__())
+const store = createStore(reducer, persistedState, composeEnhancer(applyMiddleware(thunk)))
 
 store.subscribe(() => saveToLocalStorage(store.getState()))
 
