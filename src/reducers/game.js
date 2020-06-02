@@ -738,7 +738,7 @@ export const game = createSlice({
                     })
                 }
 
-            } else if (piece.piece.type.includes('rook')) {
+            } else if (piece.piece.type.includes('blah')) {
                 const sameColumn = state.squares.filter((square) => square.column === piece.column)
                 const sameRow = state.squares.filter((square) => square.row === piece.row)
                 let i = piece.row - 1;
@@ -794,7 +794,7 @@ export const game = createSlice({
                     }
                 }
             } else if (piece.piece.type.includes('bishop')) {
-                console.log('bishop')
+
                 const bishopMoves = [
                     { x: 1, y: 1 },
                     { x: 1, y: -1 },
@@ -824,6 +824,38 @@ export const game = createSlice({
                         })
                     }
 
+                })
+
+            } else if (piece.piece.type.includes('rook')) {
+                const rookMoves = [
+                    { x: 0, y: 1 },
+                    { x: 0, y: -1 },
+                    { x: 1, y: 0 },
+                    { x: -1, y: 0 }
+                ]
+                rookMoves.forEach((dir) => {
+                    let scale = 1;
+                    for (scale = 1; scale <= 8; scale++) {
+                        const offset = { x: dir.x * scale, y: dir.y * scale }
+                        state.squares.forEach((square) => {
+                            if ((square.column === piece.column && square.row === piece.row + offset.x) ||
+                                square.row === piece.row && square.column === piece.column + offset.y) {
+                                if (square.piece.color && square.piece.color !== piece.piece.color) {
+                                    square.valid = true;
+                                    scale = 9;
+                                } else if ((square.column === piece.column && square.row === piece.row + offset.x && !square.piece.color) ||
+                                    (square.row === piece.row && square.column === piece.column + offset.y && !square.piece.color) ||
+                                    (square.row === piece.row && square.column === piece.column)) {
+
+                                    square.valid = true;
+                                } else {
+                                    square.valid = false;
+                                    scale = 9;
+                                }
+
+                            }
+                        })
+                    }
                 })
 
             }
