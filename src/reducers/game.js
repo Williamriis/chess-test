@@ -923,6 +923,33 @@ export const game = createSlice({
                     }
 
                 })
+            } else if (piece.piece.type.includes('knight')) {
+                const knightMoves = [
+                    { x: 2, y: 1 },
+                    { x: -2, y: 1 },
+                    { x: 2, y: -1 },
+                    { x: -2, y: -1 },
+                    { x: 1, y: 2 },
+                    { x: 1, y: -2 },
+                    { x: -1, y: 2 },
+                    { x: -1, y: -2 }
+                ]
+
+                knightMoves.forEach((dir) => {
+                    let scale = 1;
+                    for (scale = 1; scale <= 1; scale++) {
+                        const offset = { x: dir.x * scale, y: dir.y * scale }
+                        state.squares.forEach((square) => {
+                            if (square.row === piece.row && square.column === piece.column) {
+                                square.valid = true;
+                            } else if (square.row === piece.row + offset.x && square.column === piece.column + offset.y &&
+                                square.piece.color !== piece.piece.color) {
+                                square.valid = true;
+                                scale = 9;
+                            }
+                        })
+                    }
+                })
             }
         },
 
