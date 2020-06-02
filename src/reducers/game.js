@@ -81,9 +81,11 @@ const pieces = {
             image: require('../assets/white-knight.svg.png')
         },
         bishop: {
-            type: 'Bishop',
+            type: 'bishop',
             color: 'white',
-            image: ''
+            restingImage: require('../assets/white-bishop.svg.png'),
+            activeImage: require('../assets/active-white-bishop.png'),
+            image: require('../assets/white-bishop.svg.png')
         },
         queen: {
             type: 'Queen',
@@ -170,14 +172,18 @@ const pieces = {
             image: require('../assets/black-rook.svg.png')
         },
         knight: {
-            type: 'Knight',
+            type: 'knight',
             color: 'black',
-            image: ''
+            restingImage: require('../assets/black-knight.svg.png'),
+            activeImage: require('../assets/active-black-knight.svg.png'),
+            image: require('../assets/black-knight.svg.png')
         },
         bishop: {
-            type: 'Bishop',
+            type: 'bishop',
             color: 'black',
-            image: ''
+            restingImage: require('../assets/black-bishop.svg.png'),
+            activeImage: require('../assets/active-black-bishop.svg.png'),
+            image: require('../assets/black-bishop.svg.png')
         },
         queen: {
             type: 'Queen',
@@ -456,9 +462,7 @@ const initialState = {
         {
             row: 5,
             column: 5,
-            piece: {
-
-            },
+            piece: {},
             valid: false
         },
         {
@@ -735,13 +739,12 @@ export const game = createSlice({
                 }
 
             } else if (piece.piece.type.includes('rook')) {
-                console.log('rook')
-
                 const sameColumn = state.squares.filter((square) => square.column === piece.column)
                 const sameRow = state.squares.filter((square) => square.row === piece.row)
-
-                let i = 0;
-                let j = 0;
+                let i = piece.row - 1;
+                let k = piece.row - 1;
+                let j = piece.column - 1;
+                let l = piece.column - 1;
                 while (i <= 7) {
                     if (sameColumn[i].row === piece.row || !sameColumn[i].piece.color || (sameColumn[i].piece.color && sameColumn[i].piece.color !== piece.piece.color)) {
                         if (sameColumn[i].piece.color && sameColumn[i].piece.color !== piece.piece.color) {
@@ -750,6 +753,18 @@ export const game = createSlice({
                         }
                         sameColumn[i].valid = true;
                         i++;
+                    } else {
+                        break
+                    }
+                }
+                while (k >= 0) {
+                    if (sameColumn[k].row === piece.row || !sameColumn[k].piece.color || (sameColumn[k].piece.color && sameColumn[k].piece.color !== piece.piece.color)) {
+                        if (sameColumn[k].piece.color && sameColumn[k].piece.color !== piece.piece.color) {
+                            sameColumn[k].valid = true;
+                            break;
+                        }
+                        sameColumn[k].valid = true;
+                        k--;
                     } else {
                         break
                     }
@@ -766,6 +781,50 @@ export const game = createSlice({
                         break
                     }
                 }
+                while (l >= 0) {
+                    if (sameRow[l].column === piece.column || !sameRow[l].piece.color || (sameRow[l].piece.color && sameRow[l].piece.color !== piece.piece.color)) {
+                        if (sameRow[l].piece.color && sameRow[l].piece.color !== piece.piece.color) {
+                            sameRow[l].valid = true;
+                            break;
+                        }
+                        sameRow[l].valid = true;
+                        l--;
+                    } else {
+                        break
+                    }
+                }
+            } else if (piece.piece.type.includes('bishop')) {
+                console.log('bishop')
+                const bishopMoves = [
+                    { x: 1, y: 1 },
+                    { x: 1, y: -1 },
+                    { x: -1, y: 1 },
+                    { x: -1, y: -1 }
+                ]
+                bishopMoves.forEach((dir) => {
+                    let scale = 1;
+                    for (scale = 1; scale <= 8; scale++) {
+                        let offset = { x: dir.x * scale, y: dir.y * scale }
+                        state.squares.forEach((square) => {
+                            if ((square.row === piece.row && square.column === piece.column) ||
+                                (square.row === piece.row + offset.x && square.column === piece.column + offset.y)) {
+                                if (square.row === piece.row + offset.x && square.column === piece.column + offset.y && square.piece.color && square.piece.color !== piece.piece.color) {
+                                    square.valid = true;
+                                    scale = 9;
+                                } else if (square.row === piece.row + offset.x && square.column === piece.column + offset.y && !square.piece.color ||
+                                    square.row === piece.row && square.column === piece.column) {
+                                    console.log('same colour')
+                                    square.valid = true;
+
+                                } else {
+                                    square.valid = false;
+                                    scale = 9;
+                                }
+                            }
+                        })
+                    }
+
+                })
 
             }
         },
