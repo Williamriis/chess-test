@@ -95,9 +95,11 @@ const pieces = {
             image: require('../assets/white-queen.svg.png')
         },
         king: {
-            type: 'King',
+            type: 'king',
             color: 'white',
-            image: ''
+            restingImage: require('../assets/white-king.svg.png'),
+            activeImage: require('../assets/active-white-king.svg.png'),
+            image: require('../assets/white-king.svg.png')
         }
     },
 
@@ -195,9 +197,11 @@ const pieces = {
             image: require('../assets/black-queen.svg.png')
         },
         king: {
-            type: 'King',
+            type: 'king',
             color: 'black',
-            image: ''
+            restingImage: require('../assets/black-king.svg.png'),
+            activeImage: require('../assets/active-black-king.svg.png'),
+            image: require('../assets/black-king.svg.png')
         }
     }
 
@@ -846,6 +850,62 @@ export const game = createSlice({
                                 if ((square.row === piece.row && square.column === piece.column) ||
                                     (square.row === piece.row + offset.x && square.column === piece.column + offset.y)) {
                                     if (square.row === piece.row + offset.x && square.column === piece.column + offset.y && square.piece.color && square.piece.color !== piece.piece.color) {
+                                        square.valid = true;
+                                        scale = 9;
+                                    } else if (square.row === piece.row + offset.x && square.column === piece.column + offset.y && !square.piece.color ||
+                                        square.row === piece.row && square.column === piece.column) {
+                                        console.log('same colour')
+                                        square.valid = true;
+
+                                    } else {
+                                        square.valid = false;
+                                        scale = 9;
+                                    }
+                                }
+                            })
+                        }
+                    }
+
+                })
+            } else if (piece.piece.type.includes('king')) {
+                const kingMoves = [
+                    { x: 0, y: 1, type: "straight" },
+                    { x: 0, y: -1, type: "straight" },
+                    { x: 1, y: 0, type: "straight" },
+                    { x: -1, y: 0, type: "straight" },
+                    { x: 1, y: 1, type: "diagonal" },
+                    { x: 1, y: -1, type: "diagonal" },
+                    { x: -1, y: 1, type: "diagonal" },
+                    { x: -1, y: -1, type: "diagonal" }
+                ]
+                kingMoves.forEach((dir) => {
+                    let scale = 1;
+                    for (scale = 1; scale <= 1; scale++) {
+                        const offset = { x: dir.x * scale, y: dir.y * scale }
+                        if (dir.type === "straight") {
+                            state.squares.forEach((square) => {
+                                if ((square.column === piece.column && square.row === piece.row + offset.x) ||
+                                    square.row === piece.row && square.column === piece.column + offset.y) {
+                                    if (square.piece.color && square.piece.color !== piece.piece.color && square.piece.type !== 'king') {
+                                        square.valid = true;
+                                        scale = 9;
+                                    } else if ((square.column === piece.column && square.row === piece.row + offset.x && !square.piece.color) ||
+                                        (square.row === piece.row && square.column === piece.column + offset.y && !square.piece.color) ||
+                                        (square.row === piece.row && square.column === piece.column)) {
+
+                                        square.valid = true;
+                                    } else {
+                                        square.valid = false;
+                                        scale = 9;
+                                    }
+
+                                }
+                            })
+                        } else {
+                            state.squares.forEach((square) => {
+                                if ((square.row === piece.row && square.column === piece.column) ||
+                                    (square.row === piece.row + offset.x && square.column === piece.column + offset.y)) {
+                                    if (square.row === piece.row + offset.x && square.column === piece.column + offset.y && square.piece.color && square.piece.color !== piece.piece.color && square.piece.type !== 'king') {
                                         square.valid = true;
                                         scale = 9;
                                     } else if (square.row === piece.row + offset.x && square.column === piece.column + offset.y && !square.piece.color ||
