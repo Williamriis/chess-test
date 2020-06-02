@@ -88,9 +88,11 @@ const pieces = {
             image: require('../assets/white-bishop.svg.png')
         },
         queen: {
-            type: 'Queen',
+            type: 'queen',
             color: 'white',
-            image: ''
+            restingImage: require('../assets/white-queen.svg.png'),
+            activeImage: require('../assets/active-white-queen.svg.png'),
+            image: require('../assets/white-queen.svg.png')
         },
         king: {
             type: 'King',
@@ -186,9 +188,11 @@ const pieces = {
             image: require('../assets/black-bishop.svg.png')
         },
         queen: {
-            type: 'Queen',
+            type: 'queen',
             color: 'black',
-            image: ''
+            restingImage: require('../assets/black-queen.svg.png'),
+            activeImage: require('../assets/active-black-queen.svg.png'),
+            image: require('../assets/black-queen.svg.png')
         },
         king: {
             type: 'King',
@@ -622,13 +626,13 @@ const initialState = {
         {
             row: 8,
             column: 4,
-            piece: pieces.black.king,
+            piece: pieces.black.queen,
             valid: false
         },
         {
             row: 8,
             column: 5,
-            piece: pieces.black.queen,
+            piece: pieces.black.king,
             valid: false
         },
         {
@@ -738,61 +742,6 @@ export const game = createSlice({
                     })
                 }
 
-            } else if (piece.piece.type.includes('blah')) {
-                const sameColumn = state.squares.filter((square) => square.column === piece.column)
-                const sameRow = state.squares.filter((square) => square.row === piece.row)
-                let i = piece.row - 1;
-                let k = piece.row - 1;
-                let j = piece.column - 1;
-                let l = piece.column - 1;
-                while (i <= 7) {
-                    if (sameColumn[i].row === piece.row || !sameColumn[i].piece.color || (sameColumn[i].piece.color && sameColumn[i].piece.color !== piece.piece.color)) {
-                        if (sameColumn[i].piece.color && sameColumn[i].piece.color !== piece.piece.color) {
-                            sameColumn[i].valid = true;
-                            break;
-                        }
-                        sameColumn[i].valid = true;
-                        i++;
-                    } else {
-                        break
-                    }
-                }
-                while (k >= 0) {
-                    if (sameColumn[k].row === piece.row || !sameColumn[k].piece.color || (sameColumn[k].piece.color && sameColumn[k].piece.color !== piece.piece.color)) {
-                        if (sameColumn[k].piece.color && sameColumn[k].piece.color !== piece.piece.color) {
-                            sameColumn[k].valid = true;
-                            break;
-                        }
-                        sameColumn[k].valid = true;
-                        k--;
-                    } else {
-                        break
-                    }
-                }
-                while (j <= 7) {
-                    if (sameRow[j].column === piece.column || !sameRow[j].piece.color || (sameRow[j].piece.color && sameRow[j].piece.color !== piece.piece.color)) {
-                        if (sameRow[j].piece.color && sameRow[j].piece.color !== piece.piece.color) {
-                            sameRow[j].valid = true;
-                            break;
-                        }
-                        sameRow[j].valid = true;
-                        j++;
-                    } else {
-                        break
-                    }
-                }
-                while (l >= 0) {
-                    if (sameRow[l].column === piece.column || !sameRow[l].piece.color || (sameRow[l].piece.color && sameRow[l].piece.color !== piece.piece.color)) {
-                        if (sameRow[l].piece.color && sameRow[l].piece.color !== piece.piece.color) {
-                            sameRow[l].valid = true;
-                            break;
-                        }
-                        sameRow[l].valid = true;
-                        l--;
-                    } else {
-                        break
-                    }
-                }
             } else if (piece.piece.type.includes('bishop')) {
 
                 const bishopMoves = [
@@ -823,7 +772,6 @@ export const game = createSlice({
                             }
                         })
                     }
-
                 })
 
             } else if (piece.piece.type.includes('rook')) {
@@ -858,6 +806,63 @@ export const game = createSlice({
                     }
                 })
 
+            } else if (piece.piece.type.includes('queen')) {
+                console.log('queen')
+                const queenMoves = [
+                    { x: 0, y: 1, type: "straight" },
+                    { x: 0, y: -1, type: "straight" },
+                    { x: 1, y: 0, type: "straight" },
+                    { x: -1, y: 0, type: "straight" },
+                    { x: 1, y: 1, type: "diagonal" },
+                    { x: 1, y: -1, type: "diagonal" },
+                    { x: -1, y: 1, type: "diagonal" },
+                    { x: -1, y: -1, type: "diagonal" }
+                ]
+                queenMoves.forEach((dir) => {
+                    let scale = 1;
+                    for (scale = 1; scale <= 8; scale++) {
+                        const offset = { x: dir.x * scale, y: dir.y * scale }
+                        if (dir.type === "straight") {
+                            state.squares.forEach((square) => {
+                                if ((square.column === piece.column && square.row === piece.row + offset.x) ||
+                                    square.row === piece.row && square.column === piece.column + offset.y) {
+                                    if (square.piece.color && square.piece.color !== piece.piece.color) {
+                                        square.valid = true;
+                                        scale = 9;
+                                    } else if ((square.column === piece.column && square.row === piece.row + offset.x && !square.piece.color) ||
+                                        (square.row === piece.row && square.column === piece.column + offset.y && !square.piece.color) ||
+                                        (square.row === piece.row && square.column === piece.column)) {
+
+                                        square.valid = true;
+                                    } else {
+                                        square.valid = false;
+                                        scale = 9;
+                                    }
+
+                                }
+                            })
+                        } else {
+                            state.squares.forEach((square) => {
+                                if ((square.row === piece.row && square.column === piece.column) ||
+                                    (square.row === piece.row + offset.x && square.column === piece.column + offset.y)) {
+                                    if (square.row === piece.row + offset.x && square.column === piece.column + offset.y && square.piece.color && square.piece.color !== piece.piece.color) {
+                                        square.valid = true;
+                                        scale = 9;
+                                    } else if (square.row === piece.row + offset.x && square.column === piece.column + offset.y && !square.piece.color ||
+                                        square.row === piece.row && square.column === piece.column) {
+                                        console.log('same colour')
+                                        square.valid = true;
+
+                                    } else {
+                                        square.valid = false;
+                                        scale = 9;
+                                    }
+                                }
+                            })
+                        }
+                    }
+
+                })
             }
         },
 
@@ -866,8 +871,6 @@ export const game = createSlice({
             state.pieces[piece.piece.color][piece.piece.type].image = state.pieces[piece.piece.color][piece.piece.type].restingImage
             let foundSquare = state.squares.find((square) => square.row === piece.row && square.column === piece.column)
             foundSquare.piece = state.pieces[piece.piece.color][piece.piece.type]
-
-
             state.squares.forEach((square) => {
                 square.valid = false
             })
