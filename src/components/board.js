@@ -40,7 +40,7 @@ export const SetGame = () => {
     const checked = useSelector((store) => store.game.inCheck)
     const [activePiece, setActivePiece] = useState(false)
     useEffect(() => {
-        dispatch(testCheck('hello'))
+        dispatch(testCheck())
     }, [currentPlayer])
 
     const movePiece = async (oldSquare, targetSquare) => {
@@ -48,11 +48,15 @@ export const SetGame = () => {
         if (!activePiece && oldSquare.piece.color !== currentPlayer) {
             alert(`It's ${currentPlayer}'s turn!`)
         } else if (!activePiece && oldSquare.piece.type) {
-            console.log(oldSquare, targetSquare)
             await setActivePiece(oldSquare)
             dispatch(
                 game.actions.moveCalculator({ piece: oldSquare })
             )
+            if (oldSquare.piece.type === 'king') {
+                dispatch(
+                    game.actions.castleValidate({ piece: oldSquare })
+                )
+            }
             //trigger valid square calculator with properties of activepiece
         } else if (activePiece && targetSquare.column === activePiece.column && targetSquare.row === activePiece.row) {
             console.log('same piece')
@@ -61,12 +65,17 @@ export const SetGame = () => {
             )
             setActivePiece(false)
         } else if (activePiece && activePiece !== targetSquare) {
+            if (activePiece.piece.type === 'king' && targetSquare.piece.type === 'rook' && activePiece.piece.color === targetSquare.piece.color) {
+                dispatch(
+                    game.actions.castle({ oldSquare: activePiece, targetSquare: targetSquare })
+                )
+            } else {
+                dispatch(
+                    game.actions.movePiece({ oldSquare: activePiece, targetSquare: targetSquare })
+                )
+            }
 
-            //dispatch function to set square.piece to = activePiece.
-            //remove activePiece from its current square
-            dispatch(
-                game.actions.movePiece({ oldSquare: activePiece, targetSquare: targetSquare })
-            )
+
             setActivePiece(false)
         }
     }

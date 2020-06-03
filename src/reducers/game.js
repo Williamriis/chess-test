@@ -746,7 +746,7 @@ export const game = createSlice({
                 if (piece.piece.color === 'white') {
                     state.squares.forEach((square) => {
                         if ((piece.row === square.row && piece.column === square.column)) {
-                            testCheck ? state.validSquares.push(square) : square.valid = true
+                            square.valid = true
                         } else if (square.column === piece.column && square.row === piece.row + 1 && !square.piece.type) {
                             testCheck ? state.validSquares.push(square) : square.valid = true
                         } else if ((square.column === piece.column + 1 || square.column === piece.column - 1) &&
@@ -761,7 +761,7 @@ export const game = createSlice({
                 } else {
                     state.squares.forEach((square) => {
                         if (piece.row === square.row && piece.column === square.column) {
-                            testCheck ? state.validSquares.push(square) : square.valid = true;
+                            square.valid = true;
                         } else if (square.column === piece.column && square.row === piece.row - 1 && !square.piece.type) {
                             testCheck ? state.validSquares.push(square) : square.valid = true;
                         } else if ((square.column === piece.column + 1 || square.column === piece.column - 1) &&
@@ -781,8 +781,8 @@ export const game = createSlice({
 
                     state.squares.forEach((square) => {
                         if (piece.row === square.row && piece.column === square.column) {
-                            testCheck ? state.validSquares.push(square) : square.valid = true;
-                        } else if (square.column === piece.column && (square.row === piece.row + 1 || square.row === piece.row + 2) && !square.piece.type) {
+                            square.valid = true;
+                        } else if (square.column === piece.column && (square.row === piece.row + 1 && !square.piece.type) || ((square.row === piece.row + 1 && !square.piece.type) && square.row === piece.row + 2 && !square.piece.type)) {
                             testCheck ? state.validSquares.push(square) : square.valid = true;
                         } else if ((square.column === piece.column + 1 || square.column === piece.column - 1) &&
                             square.row === piece.row + 1 &&
@@ -796,8 +796,8 @@ export const game = createSlice({
                 } else {
                     state.squares.forEach((square) => {
                         if (piece.row === square.row && piece.column === square.column) {
-                            testCheck ? state.validSquares.push(square) : square.valid = true;
-                        } else if (square.column === piece.column && (square.row === piece.row - 1 || square.row === piece.row - 2) && !square.piece.type) {
+                            square.valid = true;
+                        } else if (square.column === piece.column && (square.row === piece.row - 1 && !square.piece.type) || ((square.row === piece.row - 1 && !square.piece.type) && square.row === piece.row - 2 && !square.piece.type)) {
                             testCheck ? state.validSquares.push(square) : square.valid = true;
                         } else if ((square.column === piece.column + 1 || square.column === piece.column - 1) &&
                             square.row === piece.row - 1 &&
@@ -1032,6 +1032,14 @@ export const game = createSlice({
                     if (state.lastMove.takenPiece.type) {
                         state.players[state.lastMove.takenPiece.color].lostPieces.pop()
                     }
+                    if (state.lastMove.blankSquare) {
+                        let revertBlank = state.squares.find((square) => square.row === state.lastMove.blankSquare.row && square.column === state.lastMove.blankSquare.column)
+                        let revertBlankTwo = state.squares.find((square) => square.row === state.lastMove.blankSquareTwo.row && square.column === state.lastMove.blankSquareTwo.column)
+                        let revertRook = state.squares.find((square) => square.row === state.lastMove.rookSquare.row && square.column === state.lastMove.rookSquare.column)
+                        revertBlank.piece = ''
+                        revertBlankTwo.piece = ''
+                        revertRook.piece = state.pieces[state.lastMove.movedPiece.color][state.lastMove.movedTo.piece.type]
+                    }
                     state.currentTurn = state.currentTurn === "white" ? "black" : "white"
                 }
             }
@@ -1057,6 +1065,49 @@ export const game = createSlice({
             state.players[recoveredPiece.color].lostPieces.push(state.lastMove.movedPiece)
             state.players[recoveredPiece.color].promote = false;
             state.currentTurn = recoveredPiece.color === "white" ? "black" : "white"
+        },
+
+        castleValidate: (state, action) => {
+            const { piece } = action.payload
+            const blankSquaresLeft = state.squares.filter((square) => square.row === piece.row && square.column > 1 && square.column < 5 && !square.piece.type)
+            const blankSquaresRight = state.squares.filter((square) => square.row === piece.row && square.column > 5 && square.column < 8 && !square.piece.type)
+            if (piece.piece.color !== state.inCheck) {
+                state.squares.forEach((square) => {
+                    if (square.row === piece.row && square.piece.type === 'rook') {
+                        if (square.column === 1 && blankSquaresLeft.length === 3) {
+                            square.valid = true;
+                        } else if (square.column === 8 && blankSquaresRight.length === 2) {
+                            square.valid = true;
+                        }
+                    }
+                })
+            }
+        },
+
+        castle: (state, action) => {
+
+            const { oldSquare, targetSquare } = action.payload
+            const newSquare = state.squares.find((square) => square.row === targetSquare.row && square.column === (targetSquare.column === 1 ? targetSquare.column + 2 : targetSquare.column - 1))
+            const rookSquare = state.squares.find((square) => square.row === oldSquare.row && square.column === (targetSquare.column === 1 ? newSquare.column + 1 : newSquare.column - 1))
+            newSquare.piece = oldSquare.piece
+            state.pieces[newSquare.piece.color][newSquare.piece.type].image = state.pieces[newSquare.piece.color][newSquare.piece.type].restingImage
+            newSquare.piece = state.pieces[newSquare.piece.color][newSquare.piece.type]
+            rookSquare.piece = targetSquare.piece
+            const formerRookSquare = state.squares.find((square) => square.row === targetSquare.row && square.column === targetSquare.column)
+            formerRookSquare.piece = ''
+            const formerKingSquare = state.squares.find((square) => square.row === oldSquare.row && square.column === oldSquare.column)
+            formerKingSquare.piece = ''
+            state.lastMove = {
+                movedFrom: oldSquare,
+                movedTo: targetSquare,
+                movedPiece: oldSquare.piece,
+                takenPiece: '',
+                blankSquare: rookSquare,
+                blankSquareTwo: newSquare,
+                rookSquare: targetSquare
+            }
+            state.currentTurn = state.currentTurn === "white" ? "black" : "white"
+            state.inCheck = ''
         }
 
     }
@@ -1072,3 +1123,4 @@ export const testCheck = (message) => {
         })
     }
 }
+
