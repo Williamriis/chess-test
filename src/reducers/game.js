@@ -662,16 +662,18 @@ const initialState = {
 
 
     ],
-    players: [
-        {
+    players: {
+        white: {
             color: "white",
-            hasKing: true
+            lostPieces: [],
+            promote: false
         },
-        {
+        black: {
             color: "black",
-            hasKing: true
+            lostPieces: [],
+            promote: false
         }
-    ],
+    },
     currentTurn: "white",
     validSquares: [],
     inCheck: '',
@@ -684,7 +686,6 @@ export const game = createSlice({
     initialState,
     reducers: {
 
-
         movePiece: (state, action) => {
             state.testIfInCheck = false;
             const { oldSquare, targetSquare } = action.payload
@@ -694,21 +695,38 @@ export const game = createSlice({
             newSquare.piece = state.pieces[newSquare.piece.color][newSquare.piece.type]
             const formerSquare = state.squares.find((square) => square.row === oldSquare.row && square.column === oldSquare.column)
             formerSquare.piece = ''
+            if (targetSquare.piece.type) {
+                state.players[targetSquare.piece.color].lostPieces.push(targetSquare.piece)
+            }
 
             state.squares.forEach((square) => {
                 square.valid = false
             })
-            if (newSquare.piece.type.includes('pawn')) {
-                state.pieces[newSquare.piece.color][newSquare.piece.type].moved = true;
-                newSquare.piece = state.pieces[newSquare.piece.color][newSquare.piece.type]
-            }
+
             state.lastMove = {
                 movedFrom: oldSquare,
                 movedTo: targetSquare,
-                movedPiece: oldSquare.piece
+                movedPiece: oldSquare.piece,
+                takenPiece: targetSquare.piece
             }
 
-            state.currentTurn = state.currentTurn === "white" ? "black" : "white"
+            if (newSquare.piece.type.includes('pawn') && state.currentTurn !== state.inCheck) {
+                state.pieces[newSquare.piece.color][newSquare.piece.type].moved = true;
+                newSquare.piece = state.pieces[newSquare.piece.color][newSquare.piece.type]
+                if (newSquare.row === 8 && newSquare.piece.color === "white") {
+                    state.players[newSquare.piece.color].promote = true;
+                } else if (newSquare.row === 1 && newSquare.piece.color === "black") {
+                    state.players[newSquare.piece.color].promote = true;
+                } else {
+                    state.currentTurn = state.currentTurn === "white" ? "black" : "white"
+                }
+            } else {
+                state.currentTurn = state.currentTurn === "white" ? "black" : "white"
+                state.inCheck = ''
+            }
+
+
+
 
 
 
@@ -999,19 +1017,23 @@ export const game = createSlice({
 
             if (testCheck) {
                 const check = state.validSquares.filter((square) => square.piece.type === 'king')
+
                 if (check.length > 0 && piece.piece.type !== 'king') {
                     state.inCheck = check[0].piece.color
-                    alert(`${check[0].piece.color} is in check`)
-                }
+                    console.log(`${check[0].piece.color} is in check`)
+                } else {
 
-                // if (state.currentTurn === state.inCheck) {
-                //     let revertStateNew = state.squares.find((square) => square.row === state.lastMove.movedTo.row && square.column === state.lastMove.movedTo.column)
-                //     revertStateNew.piece = state.lastMove.movedTo.piece
-                //     let revertStateOld = state.squares.find((square) => square.row === state.lastMove.movedFrom.row && square.column === state.lastMove.movedFrom.column)
-                //     revertStateOld.piece = state.lastMove.movedFrom.piece;
-                // } else {
-                //     state.currentTurn = state.currentTurn === "white" ? "black" : "white"
-                // }
+                }
+                if ((state.currentTurn === "white" && state.inCheck === "black") || (state.currentTurn === "black" && state.inCheck === "white")) {
+                    let revertStateNew = state.squares.find((square) => square.row === state.lastMove.movedTo.row && square.column === state.lastMove.movedTo.column)
+                    revertStateNew.piece = state.lastMove.movedTo.piece
+                    let revertStateOld = state.squares.find((square) => square.row === state.lastMove.movedFrom.row && square.column === state.lastMove.movedFrom.column)
+                    revertStateOld.piece = state.lastMove.movedFrom.piece;
+                    if (state.lastMove.takenPiece.type) {
+                        state.players[state.lastMove.takenPiece.color].lostPieces.pop()
+                    }
+                    state.currentTurn = state.currentTurn === "white" ? "black" : "white"
+                }
             }
 
         },
@@ -1026,7 +1048,16 @@ export const game = createSlice({
             })
         },
 
-
+        promotePawn: (state, action) => {
+            const { recoveredPiece } = action.payload
+            const foundSquare = state.squares.find((square) => square.row === state.lastMove.movedTo.row && square.column === state.lastMove.movedTo.column)
+            foundSquare.piece = recoveredPiece;
+            const index = state.players[recoveredPiece.color].lostPieces.map((item) => item.type).indexOf(recoveredPiece.type)
+            state.players[recoveredPiece.color].lostPieces.splice(index, 1)
+            state.players[recoveredPiece.color].lostPieces.push(state.lastMove.movedPiece)
+            state.players[recoveredPiece.color].promote = false;
+            state.currentTurn = recoveredPiece.color === "white" ? "black" : "white"
+        }
 
     }
 })
@@ -1034,7 +1065,7 @@ export const game = createSlice({
 export const testCheck = (message) => {
     return (dispatch, getState) => {
         const state = getState()
-        const occupiedSquares = state.game.squares.filter((square) => square.piece.type)
+        const occupiedSquares = state.game.squares.filter((square) => square.piece.type && square.piece.color !== state.currentTurn)
         occupiedSquares.forEach((square) => {
 
             dispatch(game.actions.moveCalculator({ piece: square, testCheck: true }))

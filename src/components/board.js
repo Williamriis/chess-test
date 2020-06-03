@@ -24,17 +24,25 @@ const PieceImage = styled.img`
   width: 100%;
   height: 100%;
 `
-
+const Promotion = styled.button`
+  background: transparent;
+  border: none;
+`
 
 export const SetGame = () => {
     const dispatch = useDispatch()
     const squares = useSelector((store) => store.game.squares)
     const currentPlayer = useSelector((store) => store.game.currentTurn)
-
+    const lostWhitePieces = useSelector((store) => store.game.players.white.lostPieces)
+    const lostBlackPieces = useSelector((store) => store.game.players.black.lostPieces)
+    const promoteWhite = useSelector((store) => store.game.players.white.promote)
+    const promoteBlack = useSelector((store) => store.game.players.black.promote)
+    const checked = useSelector((store) => store.game.inCheck)
     const [activePiece, setActivePiece] = useState(false)
     useEffect(() => {
         dispatch(testCheck('hello'))
     }, [currentPlayer])
+
     const movePiece = async (oldSquare, targetSquare) => {
 
         if (!activePiece && oldSquare.piece.color !== currentPlayer) {
@@ -63,14 +71,36 @@ export const SetGame = () => {
         }
     }
 
+    const promotePiece = (piece) => {
+        dispatch(
+            game.actions.promotePawn({ recoveredPiece: piece })
+        )
+    }
+
     return (
-        <Board>
-            {squares.map((square, index) => {
-                return <Square index={index} row={square.row} valid={square.valid}
-                    onClick={() => movePiece(square, square)}
-                    disabled={activePiece && !square.valid && activePiece !== square}>{square.piece.image && <PieceImage src={square.piece.image} />}</Square>
-            })}
-        </Board>
+        <div>
+            <div style={{ display: "flex", width: "75%", flexWrap: "wrap" }}>
+                {lostWhitePieces && lostWhitePieces.map((piece) => {
+                    return <Promotion disabled={!promoteWhite}
+                        onClick={() => promotePiece(piece)}
+                        type="button"><img src={piece.image} style={{ height: "50px", width: "50px" }} /></Promotion>
+                })}
+            </div>
+            <Board>
+                {squares.map((square, index) => {
+                    return <Square index={index} row={square.row} valid={square.valid}
+                        onClick={() => movePiece(square, square)}
+                        disabled={activePiece && !square.valid && activePiece !== square}>{square.piece.image && <PieceImage src={square.piece.image} />}</Square>
+                })}
+            </Board>
+            <div style={{ display: "flex", width: "75%", flexWrap: "wrap" }}>
+                {lostBlackPieces && lostBlackPieces.map((piece) => {
+                    return <Promotion disabled={!promoteBlack}
+                        onClick={() => promotePiece(piece)}
+                        type="button"><img src={piece.image} style={{ height: "50px", width: "50px" }} /></Promotion>
+                })}
+            </div>
+        </div>
     )
 
 }
