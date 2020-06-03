@@ -746,7 +746,7 @@ export const game = createSlice({
                 if (piece.piece.color === 'white') {
                     state.squares.forEach((square) => {
                         if ((piece.row === square.row && piece.column === square.column)) {
-                            square.valid = true
+                            testCheck ? state.validSquares.push(square) : square.valid = true;
                         } else if (square.column === piece.column && square.row === piece.row + 1 && !square.piece.type) {
                             testCheck ? state.validSquares.push(square) : square.valid = true
                         } else if ((square.column === piece.column + 1 || square.column === piece.column - 1) &&
@@ -761,7 +761,7 @@ export const game = createSlice({
                 } else {
                     state.squares.forEach((square) => {
                         if (piece.row === square.row && piece.column === square.column) {
-                            square.valid = true;
+                            testCheck ? state.validSquares.push(square) : square.valid = true;
                         } else if (square.column === piece.column && square.row === piece.row - 1 && !square.piece.type) {
                             testCheck ? state.validSquares.push(square) : square.valid = true;
                         } else if ((square.column === piece.column + 1 || square.column === piece.column - 1) &&
@@ -776,37 +776,47 @@ export const game = createSlice({
 
 
             } else if (piece.piece.type.includes('pawn') && !piece.piece.moved) {
-
                 if (piece.piece.color === 'white') {
-
+                    let i = 1;
+                    for (i = 1; i <= 2; i++) {
+                        state.squares.forEach((square) => {
+                            if (piece.row === square.row && piece.column === square.column) {
+                                testCheck ? state.validSquares.push(square) : square.valid = true;
+                            } else if (square.column === piece.column && square.row === piece.row + i && !square.piece.type) {
+                                testCheck ? state.validSquares.push(square) : square.valid = true;
+                            } else if (square.column === piece.column && square.row === piece.row + i && square.piece.type) {
+                                i = 5;
+                            }
+                        })
+                    }
                     state.squares.forEach((square) => {
-                        if (piece.row === square.row && piece.column === square.column) {
-                            square.valid = true;
-                        } else if (square.column === piece.column && (square.row === piece.row + 1 && !square.piece.type) || ((square.row === piece.row + 1 && !square.piece.type) && square.row === piece.row + 2 && !square.piece.type)) {
-                            testCheck ? state.validSquares.push(square) : square.valid = true;
-                        } else if ((square.column === piece.column + 1 || square.column === piece.column - 1) &&
+                        if ((square.column === piece.column + 1 || square.column === piece.column - 1) &&
                             square.row === piece.row + 1 &&
                             square.piece.color && square.piece.color !== piece.piece.color) {
                             testCheck ? state.validSquares.push(square) : square.valid = true;
-                        } else {
-                            square.valid = false;
                         }
 
                     })
-                } else {
+
+                } else if (piece.piece.color === 'black') {
+                    let i = -1;
+                    for (i = -1; i >= -2; i--) {
+                        state.squares.forEach((square) => {
+                            if (piece.row === square.row && piece.column === square.column) {
+                                testCheck ? state.validSquares.push(square) : square.valid = true;
+                            } else if (square.column === piece.column && square.row === piece.row + i && !square.piece.type) {
+                                testCheck ? state.validSquares.push(square) : square.valid = true;
+                            } else if (square.column === piece.column && square.row === piece.row + i && square.piece.type) {
+                                i = -5;
+                            }
+                        })
+                    }
                     state.squares.forEach((square) => {
-                        if (piece.row === square.row && piece.column === square.column) {
-                            square.valid = true;
-                        } else if (square.column === piece.column && (square.row === piece.row - 1 && !square.piece.type) || ((square.row === piece.row - 1 && !square.piece.type) && square.row === piece.row - 2 && !square.piece.type)) {
-                            testCheck ? state.validSquares.push(square) : square.valid = true;
-                        } else if ((square.column === piece.column + 1 || square.column === piece.column - 1) &&
+                        if ((square.column === piece.column + 1 || square.column === piece.column - 1) &&
                             square.row === piece.row - 1 &&
                             square.piece.color && square.piece.color !== piece.piece.color) {
                             testCheck ? state.validSquares.push(square) : square.valid = true;
-                        } else {
-                            square.valid = false;
                         }
-
 
                     })
                 }
