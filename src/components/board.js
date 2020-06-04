@@ -52,20 +52,19 @@ export const SetGame = () => {
             dispatch(
                 game.actions.moveCalculator({ piece: oldSquare })
             )
-            if (oldSquare.piece.type === 'king') {
+            if (oldSquare.piece.type === 'king' && !oldSquare.piece.moved) {
                 dispatch(
                     game.actions.castleValidate({ piece: oldSquare })
                 )
             }
             //trigger valid square calculator with properties of activepiece
         } else if (activePiece && targetSquare.column === activePiece.column && targetSquare.row === activePiece.row) {
-            console.log('same piece')
             dispatch(
                 game.actions.resetPiece({ piece: activePiece })
             )
             setActivePiece(false)
         } else if (activePiece && activePiece !== targetSquare) {
-            if (activePiece.piece.type === 'king' && targetSquare.piece.type === 'rook' && activePiece.piece.color === targetSquare.piece.color) {
+            if (activePiece.piece.type === 'king' && targetSquare.piece.type && targetSquare.piece.type.includes('rook') && activePiece.piece.color === targetSquare.piece.color) {
                 dispatch(
                     game.actions.castle({ oldSquare: activePiece, targetSquare: targetSquare })
                 )
@@ -81,6 +80,7 @@ export const SetGame = () => {
     }
 
     const promotePiece = (piece) => {
+
         dispatch(
             game.actions.promotePawn({ recoveredPiece: piece })
         )
@@ -99,7 +99,7 @@ export const SetGame = () => {
                 {squares.map((square, index) => {
                     return <Square index={index} row={square.row} valid={square.valid}
                         onClick={() => movePiece(square, square)}
-                        disabled={activePiece && !square.valid && activePiece !== square}>{square.piece.image && <PieceImage src={square.piece.image} />}</Square>
+                        disabled={(activePiece && !square.valid && activePiece !== square) || promoteBlack || promoteWhite}>{square.piece.image && <PieceImage src={square.piece.image} />}</Square>
                 })}
             </Board>
             <div style={{ display: "flex", width: "75%", flexWrap: "wrap" }}>

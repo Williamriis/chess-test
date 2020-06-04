@@ -67,12 +67,21 @@ const pieces = {
             image: require('../assets/white-pawn.svg.png'),
             moved: false
         },
-        rook: {
-            type: 'rook',
+        rookOne: {
+            type: 'rookOne',
             color: 'white',
             restingImage: require('../assets/white-rook.svg.png'),
             activeImage: require('../assets/active-white-rook.svg.png'),
-            image: require('../assets/white-rook.svg.png')
+            image: require('../assets/white-rook.svg.png'),
+            moved: false
+        },
+        rookTwo: {
+            type: 'rookTwo',
+            color: 'white',
+            restingImage: require('../assets/white-rook.svg.png'),
+            activeImage: require('../assets/active-white-rook.svg.png'),
+            image: require('../assets/white-rook.svg.png'),
+            moved: false
         },
         knight: {
             type: 'knight',
@@ -100,7 +109,8 @@ const pieces = {
             color: 'white',
             restingImage: require('../assets/white-king.svg.png'),
             activeImage: require('../assets/active-white-king.svg.png'),
-            image: require('../assets/white-king.svg.png')
+            image: require('../assets/white-king.svg.png'),
+            moved: false
         }
     },
 
@@ -169,12 +179,21 @@ const pieces = {
             image: require('../assets/black-pawn.svg.png'),
             moved: false
         },
-        rook: {
-            type: 'rook',
+        rookOne: {
+            type: 'rookOne',
             color: 'black',
             restingImage: require('../assets/black-rook.svg.png'),
             activeImage: require('../assets/active-black-rook.svg.png'),
-            image: require('../assets/black-rook.svg.png')
+            image: require('../assets/black-rook.svg.png'),
+            moved: false
+        },
+        rookTwo: {
+            type: 'rookTwo',
+            color: 'black',
+            restingImage: require('../assets/black-rook.svg.png'),
+            activeImage: require('../assets/active-black-rook.svg.png'),
+            image: require('../assets/black-rook.svg.png'),
+            moved: false
         },
         knight: {
             type: 'knight',
@@ -202,7 +221,8 @@ const pieces = {
             color: 'black',
             restingImage: require('../assets/black-king.svg.png'),
             activeImage: require('../assets/active-black-king.svg.png'),
-            image: require('../assets/black-king.svg.png')
+            image: require('../assets/black-king.svg.png'),
+            moved: false
         }
     }
 
@@ -215,7 +235,7 @@ const initialState = {
         {
             row: 1,
             column: 1,
-            piece: pieces.white.rook,
+            piece: pieces.white.rookOne,
             valid: false
         },
         {
@@ -257,7 +277,7 @@ const initialState = {
         {
             row: 1,
             column: 8,
-            piece: pieces.white.rook,
+            piece: pieces.white.rookTwo,
             valid: false
         },
         {
@@ -613,7 +633,7 @@ const initialState = {
         {
             row: 8,
             column: 1,
-            piece: pieces.black.rook,
+            piece: pieces.black.rookOne,
             valid: false
         },
         {
@@ -655,7 +675,7 @@ const initialState = {
         {
             row: 8,
             column: 8,
-            piece: pieces.black.rook,
+            piece: pieces.black.rookTwo,
             valid: false
         }
 
@@ -713,13 +733,18 @@ export const game = createSlice({
             if (newSquare.piece.type.includes('pawn') && state.currentTurn !== state.inCheck) {
                 state.pieces[newSquare.piece.color][newSquare.piece.type].moved = true;
                 newSquare.piece = state.pieces[newSquare.piece.color][newSquare.piece.type]
-                if (newSquare.row === 8 && newSquare.piece.color === "white") {
+                if (newSquare.row === 8 && newSquare.piece.color === "white" && state.players.white.lostPieces.length > 0) {
                     state.players[newSquare.piece.color].promote = true;
-                } else if (newSquare.row === 1 && newSquare.piece.color === "black") {
+                } else if (newSquare.row === 1 && newSquare.piece.color === "black" && state.players.black.lostPieces.length > 0) {
                     state.players[newSquare.piece.color].promote = true;
                 } else {
                     state.currentTurn = state.currentTurn === "white" ? "black" : "white"
                 }
+            } else if (newSquare.piece.type.includes('king') || newSquare.piece.type.includes('rook')) {
+                state.pieces[newSquare.piece.color][newSquare.piece.type].moved = true;
+                newSquare.piece = state.pieces[newSquare.piece.color][newSquare.piece.type]
+                state.currentTurn = state.currentTurn === "white" ? "black" : "white"
+                state.inCheck = ''
             } else {
                 state.currentTurn = state.currentTurn === "white" ? "black" : "white"
                 state.inCheck = ''
@@ -1083,7 +1108,7 @@ export const game = createSlice({
             const blankSquaresRight = state.squares.filter((square) => square.row === piece.row && square.column > 5 && square.column < 8 && !square.piece.type)
             if (piece.piece.color !== state.inCheck) {
                 state.squares.forEach((square) => {
-                    if (square.row === piece.row && square.piece.type === 'rook') {
+                    if (square.row === piece.row && square.piece.type && square.piece.type.includes('rook') && !square.piece.moved) {
                         if (square.column === 1 && blankSquaresLeft.length === 3) {
                             square.valid = true;
                         } else if (square.column === 8 && blankSquaresRight.length === 2) {
