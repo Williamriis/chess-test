@@ -707,7 +707,6 @@ export const game = createSlice({
     reducers: {
 
         movePiece: (state, action) => {
-            state.testIfInCheck = false;
             const { oldSquare, targetSquare } = action.payload
             const newSquare = state.squares.find((square) => square.row === targetSquare.row && square.column === targetSquare.column)
             newSquare.piece = oldSquare.piece
@@ -1067,6 +1066,10 @@ export const game = createSlice({
                     if (state.lastMove.takenPiece.type) {
                         state.players[state.lastMove.takenPiece.color].lostPieces.pop()
                     }
+                    if (state.lastMove.pieceTakenFrom) {
+                        let revertPassant = state.squares.find((square) => square.column === state.lastMove.pieceTakenFrom.column && square.row === state.lastMove.pieceTakenFrom.row)
+                        revertPassant.piece = state.lastMove.takenPiece
+                    }
                     if (state.lastMove.blankSquare) {
                         let revertBlank = state.squares.find((square) => square.row === state.lastMove.blankSquare.row && square.column === state.lastMove.blankSquare.column)
                         let revertBlankTwo = state.squares.find((square) => square.row === state.lastMove.blankSquareTwo.row && square.column === state.lastMove.blankSquareTwo.column)
@@ -1143,6 +1146,50 @@ export const game = createSlice({
             }
             state.currentTurn = state.currentTurn === "white" ? "black" : "white"
             state.inCheck = ''
+        },
+
+        enPassantValidator: (state, action) => {
+            const { piece } = action.payload
+            if (state.lastMove.movedPiece && state.lastMove.movedPiece.type.includes('pawn')) {
+                if (state.lastMove.movedFrom.row - state.lastMove.movedTo.row === piece.piece.color === 'white' ? 2 : -2) {
+                    console.log('enPassant')
+                    if (state.lastMove.movedTo.row === piece.row && (state.lastMove.movedTo.column === piece.column + 1 || piece.column - 1)) {
+                        const enPassantSquare = piece.piece.color === 'white' ? state.squares.find((square) => square.column === state.lastMove.movedFrom.column && square.row === state.lastMove.movedFrom.row - 1)
+                            : state.squares.find((square) => square.column === state.lastMove.movedFrom.column && square.row === state.lastMove.movedFrom.row + 1)
+                        enPassantSquare.valid = true;
+                    }
+                }
+            }
+        },
+
+        enPassant: (state, action) => {
+            const { oldSquare, targetSquare } = action.payload
+            const newSquare = state.squares.find((square) => square.row === targetSquare.row && square.column === targetSquare.column)
+            newSquare.piece = oldSquare.piece
+            state.pieces[newSquare.piece.color][newSquare.piece.type].image = state.pieces[newSquare.piece.color][newSquare.piece.type].restingImage
+            newSquare.piece = state.pieces[newSquare.piece.color][newSquare.piece.type]
+            const formerSquare = state.squares.find((square) => square.row === oldSquare.row && square.column === oldSquare.column)
+            formerSquare.piece = ''
+            const takenPawnSquare = newSquare.piece.color === 'white' ? state.squares.find((square) => square.column === newSquare.column && square.row === newSquare.row - 1)
+                : state.squares.find((square) => square.column === newSquare.column && square.row === newSquare.row + 1)
+            state.players[takenPawnSquare.piece.color].lostPieces.push(takenPawnSquare.piece)
+
+            state.lastMove = {
+                movedFrom: oldSquare,
+                movedTo: targetSquare,
+                movedPiece: oldSquare.piece,
+                takenPiece: takenPawnSquare.piece,
+                pieceTakenFrom: takenPawnSquare
+            }
+
+            takenPawnSquare.piece = ''
+
+            state.squares.forEach((square) => {
+                square.valid = false
+            })
+            state.currentTurn = state.currentTurn === "white" ? "black" : "white"
+            state.inCheck = ''
+
         }
 
     }

@@ -56,6 +56,10 @@ export const SetGame = () => {
                 dispatch(
                     game.actions.castleValidate({ piece: oldSquare })
                 )
+            } else if (oldSquare.piece.type.includes('pawn')) {
+                dispatch(
+                    game.actions.enPassantValidator({ piece: oldSquare })
+                )
             }
             //trigger valid square calculator with properties of activepiece
         } else if (activePiece && targetSquare.column === activePiece.column && targetSquare.row === activePiece.row) {
@@ -67,6 +71,10 @@ export const SetGame = () => {
             if (activePiece.piece.type === 'king' && targetSquare.piece.type && targetSquare.piece.type.includes('rook') && activePiece.piece.color === targetSquare.piece.color) {
                 dispatch(
                     game.actions.castle({ oldSquare: activePiece, targetSquare: targetSquare })
+                )
+            } else if (activePiece.piece.type.includes('pawn') && (targetSquare.column === activePiece.column + 1 || targetSquare.column === activePiece.column - 1) && !targetSquare.piece.type) {
+                dispatch(
+                    game.actions.enPassant({ oldSquare: activePiece, targetSquare: targetSquare })
                 )
             } else {
                 dispatch(
